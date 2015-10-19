@@ -1,13 +1,13 @@
 % Aaron Greiner and Kai Levy
 % Linearity 2 Project 1: Commute Optimization
 
-function res = bestroute(time, impact, cost)
-    function result = weighted_values(t,im,c,method)
+function res = bestroute()
+    function result = weighted_values(t,i,c,method)
         if (strcmp(method,'car'))
-            result = WCt_norm .* t + WCc_norm .* c + WCi_norm .* im;
+            result = WCt_norm .* t + WCc_norm .* c + WCi_norm .* i;
         end
         if (strcmp(method,'bike'))
-            result = WBt_norm .* t + WBc_norm .* c + WBi_norm .* im;
+            result = WBt_norm .* t + WBc_norm .* c + WBi_norm .* i;
         end
     end
         
@@ -42,24 +42,17 @@ function res = bestroute(time, impact, cost)
     b  = [3 , 4, 5, 7 , 6 , 6 , 8 , 6 , 9, 9 , 13, 12, 18, 9 , 14, 10, 16, 14, 17, 15, 12, 2 , 2 , 2 , 17];
     
     
-    CW = weighted_values(time, impact, cost, 'car');
-    G = graph(a,b,CW);
+    CW = weighted_values(33, 33, 34, 'car');
+    G = graph(a,b,W);
     
-%     plot(G, 'EdgeLabel', G.Edges.Weight)
-    [Cpath,Cd] = shortestpath(G,1,2);
+    plot(G, 'EdgeLabel', G.Edges.Weight)
+    [path,d] = shortestpath(G,1,2);
+%     DG = sparse(a, b, W, 100, 100);
+%     h = view(biograph(DG,[],'ShowWeights','on'));
+%     [dist,path,pred] = graphshortestpath(DG,99,100)
+% s = [1 1 2 3 3 4 4 6 6 7 8 7 5];
+% t = [2 3 4 4 5 5 6 1 8 1 3 2 8];
+% G = digraph(s,t);
+% plot(G)
     
-    BW = weighted_values(time, impact, cost, 'bike');
-    G = graph(a,b,BW);
-    
-%     plot(G, 'EdgeLabel', G.Edges.Weight)
-    [Bpath,Bd] = shortestpath(G,1,2);
-    
-    if (Cd < Bd)
-        disp('Drive');
-        disp(Cpath);
-    else
-       disp('Bike');
-       disp(Bpath);
-    end
-
 end
