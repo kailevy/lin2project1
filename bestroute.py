@@ -6,8 +6,38 @@ from calcweight import find_n, find_two_list, calc_weight
 # correspond to correct order of graph's inner list
 NEXT_NODE = 0
 WEIGHT = 1
+TIME = 2
+IMP = 3
+COST = 4
+DISTANCE = 5
 
-def construct_graph(a,b,w):
+def generate_weight(time_arr, imp_arr, cost_arr, time=0, imp=0, cost=0):
+    """
+    Generate one array of weights based off of 3 separate weightings and a value given to each one,
+    on a scale from 0 - 100
+    """
+    return [sum(x) for x in zip(np.multiply(time_arr, time),
+                                np.multiply(imp_arr, imp),
+                                np.multiply(cost_arr, cost)
+                                )]
+
+def normalize_weights(time_arr, imp_arr, cost_arr):
+    """
+    Normalizes the three weight arrays
+    """
+    tot_time = sum(time_arr)
+    tot_imp = sum(imp_arr)
+    tot_cost = sum(cost_arr)
+    time_norm = []
+    imp_norm = []
+    cost_norm = []
+    for index in range(len(time_arr)):
+        time_norm.append(time_arr[index] / tot_time)
+        imp_norm.append(imp_arr[index] / tot_imp)
+        cost_norm.append(cost_arr[index] / tot_cost)
+    return time_norm, imp_norm, cost_norm
+
+def construct_graph(a, b, w, time_arr, imp_arr, cost_arr, dist_arr):
     """
     Creates a representation of a graph out of two lists of nodes (a and b) and a list of the
     weights between them. The graph is a dictionary where each key is a node, and the corresponding
@@ -22,9 +52,9 @@ def construct_graph(a,b,w):
             graph[nodes[1]] =  []
         # add unadded destination nodes as list [dest, weight]
         if nodes[1] not in graph[nodes[0]]:
-            graph[nodes[0]].append([nodes[1],w[index]])
+            graph[nodes[0]].append([nodes[1], w[index], time_arr[index], imp_arr[index], cost_arr[index], dist_arr[index]])
         if nodes[0] not in graph[nodes[1]]:
-            graph[nodes[1]].append([nodes[0],w[index]])
+            graph[nodes[1]].append([nodes[0], w[index], time_arr[index], imp_arr[index], cost_arr[index], dist_arr[index]])
     return graph
 
 def dijkstra(graph, start):
@@ -37,35 +67,55 @@ def dijkstra(graph, start):
     prev: the previous node on the shortest path from the start to that node
     """
     unvisited = []
-    dist = {}
+    weight = {}
     prev = {}
+    time = {}
+    imp = {}
+    cost = {}
+    dist = {}
     for node in graph.keys():
         # add all nodes to 'unvisited' with no previous node and a weight of infinity
         unvisited.append(node)
+        weight[node] = float('inf')
+        time[node] = float('inf')
+        imp[node] = float('inf')
+        cost[node] = float('inf')
         dist[node] = float('inf')
         prev[node] = None
 
     # set the starting distance to be 0
+    weight[start] = 0
+    time[start] = 0
+    imp[start] = 0
+    cost[start] = 0
     dist[start] = 0
 
     # iterate until no node is left unvisited
     while len(unvisited) > 0:
         # get the lowest distance that has not yet been visited
-        curr_node = min(dist.viewkeys() & unvisited, key=dist.get)
+        curr_node = min(weight.viewkeys() & unvisited, key=weight.get)
         # mark the node as visited
         unvisited.remove(curr_node)
         # iterate through each neighbor of the current node
         for neighbor in graph[curr_node]:
             # calculate distance to that node from this node
-            tmp_dist = dist[curr_node] + neighbor[WEIGHT]
+            tmp_weight = weight[curr_node] + neighbor[WEIGHT]
+            tmp_time = time[curr_node] + neighbor[TIME]
+            tmp_imp= imp[curr_node] + neighbor[IMP]
+            tmp_cost = cost[curr_node] + neighbor[COST]
+            tmp_dist = dist[curr_node] + neighbor[DISTANCE]
             # if this distance is less than the one already stored at that node
-            if tmp_dist < dist[neighbor[NEXT_NODE]]:
+            if tmp_weight < weight[neighbor[NEXT_NODE]]:
                 # we store this distance as its distance,
+                weight[neighbor[NEXT_NODE]] = tmp_weight
+                time[neighbor[NEXT_NODE]] = tmp_time
+                imp[neighbor[NEXT_NODE]] = tmp_imp
+                cost[neighbor[NEXT_NODE]] = tmp_cost
                 dist[neighbor[NEXT_NODE]] = tmp_dist
                 # and this node as its previous node
                 prev[neighbor[NEXT_NODE]] = curr_node
 
-    return dist, prev
+    return weight, prev, time, imp, cost, dist
 
 def backtrack(start, end, prev):
     """
@@ -92,10 +142,23 @@ def backtrack(start, end, prev):
 if __name__ == '__main__':
     a  = [1 , 3, 3, 4 , 7 , 5 , 1 , 8 , 6, 7 , 7 , 13, 13, 11, 11, 1 , 10, 16, 14, 9 , 15, 12, 17, 18, 15]
     b  = [3 , 4, 5, 7 , 6 , 6 , 8 , 6 , 9, 9 , 13, 12, 18, 9 , 14, 10, 16, 14, 17, 15, 12, 2 , 2 , 2 , 17]
-    D  = [5 , 3, 2, 4 , 2 , 3 , 4 , 7 , 1, 3 , 8 , 4 , 2 , 5 , 4 , 10, 10, 7 , 8 , 8 , 4 , 3 , 4 , 4 , 4 ]
-    g = construct_graph(a,b,D)
-    # print g
-    dist,prev = dijkstra(g, 1)
-    # print dist
-    # print prev
-    print backtrack(1,2,prev), dist[2]
+    distance  = [5 , 3, 2, 4 , 2 , 3 , 4 , 7 , 1, 3 , 8 , 4 , 2 , 5 , 4 , 10, 10, 7 , 8 , 8 , 4 , 3 , 4 , 4 , 4 ]
+    car_time_mile =[2.2,2.3,4.5,4.75,5,3.3,3,2.3,4,3.3,2.75,4.75,3,1.6,3,1.4,1.5,1.1,2.13,2.25,4.25,1.7,4.75,2.75,1]
+    car_imp_mile= [.35,.45,.35,.35 ,.35 , .45, .25, .35,.45,.35 ,.35 ,.35 ,.35 ,.35 ,.35 , .25, .25,.25 ,.35 ,.35 ,.35 ,.35 ,.35 ,.35 ,.35 ]
+    car_cost_mile= [.2,.2,.2,.2 ,.2 , .2, .2, .2,.3,.2 ,.2 ,.2 ,.2 ,.2 ,.2 , .15, .1,.15 ,.2 ,.2 ,.2 ,.2 ,.2 ,.2 ,.2 ]
+    car_time = np.multiply(distance, car_time_mile)
+    car_imp = np.multiply(distance, car_imp_mile)
+    car_cost = np.multiply(distance, car_cost_mile)
+    car_time_norm, car_imp_norm, car_cost_norm = normalize_weights(car_time, car_imp, car_cost)
+    weight = generate_weight(car_time_norm, car_imp_norm, car_cost_norm, 0, 100, 0)
+    g = construct_graph(a, b, weight, car_time, car_imp, car_cost, distance)
+    # print 'time', construct_graph(a,b,car_time)
+    # print 'imp', construct_graph(a,b,car_imp)
+    # print 'cost', construct_graph(a,b,car_cost)
+    weighted,prev,time,imp,cost,dist = dijkstra(g, 1)
+    path = backtrack(1, 2, prev)
+    print 'Path:', path
+    print 'Time:', time[2]
+    print 'Impact:', imp[2]
+    print 'Cost:', cost[2]
+    print 'Distance:', dist[2]

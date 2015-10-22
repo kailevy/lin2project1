@@ -46,6 +46,7 @@ def calc_weight(a, b, path, W):
     """
     Calculated the weight of a given path, and with two lists representing the graph a and b
     where the weight between nodes are given by W
+    This may be defective?
     """
     weight = 0
     for node, node_next in zip(path, path[1:]):
