@@ -138,27 +138,67 @@ def backtrack(start, end, prev):
             backtracked = True
     return path
 
+def bike_or_drive(timeweight, impweight, costweight, car_time, car_imp, car_cost, bike_time, bike_imp, bike_cost):
+    """
+    Takes in the consumer's weights in different areas, and bike and car values
+    to determine biking of driving
+    """
+    time_diff_norm = (car_time - bike_time)/(car_time + bike_time)
+    imp_diff_norm = (car_imp - bike_imp)/(car_imp + bike_imp)
+    cost_diff_norm = (car_cost - bike_cost)/(car_cost + bike_cost)
+    tot = timeweight * time_diff_norm + impweight * imp_diff_norm + costweight * cost_diff_norm
+    if tot < 0:
+        return 'drive'
+    else:
+        return 'bike'
 
 if __name__ == '__main__':
     a  = [1 , 3, 3, 4 , 7 , 5 , 1 , 8 , 6, 7 , 7 , 13, 13, 11, 11, 1 , 10, 16, 14, 9 , 15, 12, 17, 18, 15]
     b  = [3 , 4, 5, 7 , 6 , 6 , 8 , 6 , 9, 9 , 13, 12, 18, 9 , 14, 10, 16, 14, 17, 15, 12, 2 , 2 , 2 , 17]
     distance  = [5 , 3, 2, 4 , 2 , 3 , 4 , 7 , 1, 3 , 8 , 4 , 2 , 5 , 4 , 10, 10, 7 , 8 , 8 , 4 , 3 , 4 , 4 , 4 ]
-    car_time_mile =[2.2,2.3,4.5,4.75,5,3.3,3,2.3,4,3.3,2.75,4.75,3,1.6,3,1.4,1.5,1.1,2.13,2.25,4.25,1.7,4.75,2.75,1]
+
+    car_time_mile = [2.2,2.3,4.5,4.75,5,3.3,3,2.3,4,3.3,2.75,4.75,3,1.6,3,1.4,1.5,1.1,2.13,2.25,4.25,1.7,4.75,2.75,1]
     car_imp_mile= [.35,.45,.35,.35 ,.35 , .45, .25, .35,.45,.35 ,.35 ,.35 ,.35 ,.35 ,.35 , .25, .25,.25 ,.35 ,.35 ,.35 ,.35 ,.35 ,.35 ,.35 ]
     car_cost_mile= [.2,.2,.2,.2 ,.2 , .2, .2, .2,.3,.2 ,.2 ,.2 ,.2 ,.2 ,.2 , .15, .1,.15 ,.2 ,.2 ,.2 ,.2 ,.2 ,.2 ,.2 ]
+
+    bike_time_mile = [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]
+    bike_imp_mile = [.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1]
+    bike_cost_mile = [.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005,.005]
+
+    timeweight = 0
+    impweight = 100
+    costweight = 0
+
     car_time = np.multiply(distance, car_time_mile)
     car_imp = np.multiply(distance, car_imp_mile)
     car_cost = np.multiply(distance, car_cost_mile)
     car_time_norm, car_imp_norm, car_cost_norm = normalize_weights(car_time, car_imp, car_cost)
-    weight = generate_weight(car_time_norm, car_imp_norm, car_cost_norm, 0, 100, 0)
-    g = construct_graph(a, b, weight, car_time, car_imp, car_cost, distance)
-    # print 'time', construct_graph(a,b,car_time)
-    # print 'imp', construct_graph(a,b,car_imp)
-    # print 'cost', construct_graph(a,b,car_cost)
-    weighted,prev,time,imp,cost,dist = dijkstra(g, 1)
-    path = backtrack(1, 2, prev)
-    print 'Path:', path
-    print 'Time:', time[2]
-    print 'Impact:', imp[2]
-    print 'Cost:', cost[2]
-    print 'Distance:', dist[2]
+
+    bike_time = np.multiply(distance, bike_time_mile)
+    bike_imp = np.multiply(distance, bike_imp_mile)
+    bike_cost = np.multiply(distance, bike_cost_mile)
+    bike_time_norm, bike_imp_norm, bike_cost_norm = normalize_weights(bike_time, bike_imp, bike_cost)
+
+    car_weight = generate_weight(car_time_norm, car_imp_norm, car_cost_norm, timeweight, impweight, costweight)
+    car_g = construct_graph(a, b, car_weight, car_time, car_imp, car_cost, distance)
+    car_weighted, car_prev, car_time, car_imp, car_cost, car_dist = dijkstra(car_g, 1)
+    car_path = backtrack(1, 2, car_prev)
+    print 'Car path:', car_path
+    print 'Time:', car_time[2]
+    print 'Impact:', car_imp[2]
+    print 'Cost:', car_cost[2]
+    print 'Distance:', car_dist[2]
+
+    bike_weight = generate_weight(bike_time_norm, bike_imp_norm, bike_cost_norm, 0, 100, 0)
+    bike_g = construct_graph(a, b, bike_weight, bike_time, bike_imp, bike_cost, distance)
+    bike_weighted, bike_prev, bike_time, bike_imp, bike_cost, bike_dist = dijkstra(bike_g, 1)
+    bike_path = backtrack(1, 2, bike_prev)
+    print 'Bike path:', bike_path
+    print 'Time:', bike_time[2]
+    print 'Impact:', bike_imp[2]
+    print 'Cost:', bike_cost[2]
+    print 'Distance:', bike_dist[2]
+
+    print 'You should', bike_or_drive(timeweight, impweight, costweight,
+    car_time[2], car_imp[2], car_cost[2],
+    bike_time[2], bike_imp[2], bike_cost[2])
