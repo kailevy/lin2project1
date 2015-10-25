@@ -156,7 +156,7 @@ if __name__ == '__main__':
     # a and b represent paths between nodes
     a  = [1 , 3, 3, 4 , 7 , 5 , 1 , 8 , 6, 7 , 7 , 13, 13, 11, 11, 1 , 10, 16, 14, 9 , 15, 12, 17, 18, 15]
     b  = [3 , 4, 5, 7 , 6 , 6 , 8 , 6 , 9, 9 , 13, 12, 18, 9 , 14, 10, 16, 14, 17, 15, 12, 2 , 2 , 2 , 17]
-    distance  = [5 , 3, 2, 4 , 2 , 3 , 4 , 7 , 1, 3 , 8 , 4 , 2 , 5 , 4 , 10, 10, 7 , 8 , 8 , 4 , 3 , 4 , 4 , 4 ]
+    distances  = [5 , 3, 2, 4 , 2 , 3 , 4 , 7 , 1, 3 , 8 , 4 , 2 , 5 , 4 , 10, 10, 7 , 8 , 8 , 4 , 3 , 4 , 4 , 4 ]
 
     # car weights per mile
     car_time_mile = [2.2,2.3,4.5,4.75,5,3.3,3,2.3,4,3.3,2.75,4.75,3,1.6,3,1.4,1.5,1.1,2.13,2.25,4.25,1.7,4.75,2.75,1]
@@ -174,21 +174,21 @@ if __name__ == '__main__':
     costweight = 0
 
     # calculate car weights and then normalize
-    car_time = np.multiply(distance, car_time_mile)
-    car_imp = np.multiply(distance, car_imp_mile)
-    car_cost = np.multiply(distance, car_cost_mile)
+    car_time = np.multiply(distances, car_time_mile)
+    car_imp = np.multiply(distances, car_imp_mile)
+    car_cost = np.multiply(distances, car_cost_mile)
     car_time_norm, car_imp_norm, car_cost_norm = normalize_weights(car_time, car_imp, car_cost)
 
     # calculate bike weights and then normalize
-    bike_time = np.multiply(distance, bike_time_mile)
-    bike_imp = np.multiply(distance, bike_imp_mile)
-    bike_cost = np.multiply(distance, bike_cost_mile)
+    bike_time = np.multiply(distances, bike_time_mile)
+    bike_imp = np.multiply(distances, bike_imp_mile)
+    bike_cost = np.multiply(distances, bike_cost_mile)
     bike_time_norm, bike_imp_norm, bike_cost_norm = normalize_weights(bike_time, bike_imp, bike_cost)
 
     # combine car weights into single weight
     car_weight = generate_weight(car_time_norm, car_imp_norm, car_cost_norm, timeweight, impweight, costweight)
     # create car graph
-    car_g = construct_graph(a, b, car_weight, car_time, car_imp, car_cost, distance)
+    car_g = construct_graph(a, b, car_weight, car_time, car_imp, car_cost, distances)
     # use dijkstra
     car_weighted, car_prev, car_time, car_imp, car_cost, car_dist = dijkstra(car_g, 1)
     # interpret results
@@ -202,7 +202,7 @@ if __name__ == '__main__':
     # combine bike weights into single weight
     bike_weight = generate_weight(bike_time_norm, bike_imp_norm, bike_cost_norm, 0, 100, 0)
     # create bike graph
-    bike_g = construct_graph(a, b, bike_weight, bike_time, bike_imp, bike_cost, distance)
+    bike_g = construct_graph(a, b, bike_weight, bike_time, bike_imp, bike_cost, distances)
     # use dijkstra
     bike_weighted, bike_prev, bike_time, bike_imp, bike_cost, bike_dist = dijkstra(bike_g, 1)
     # interpret results
